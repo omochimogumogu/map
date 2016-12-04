@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>D3: Japan TopoJSON</title>
+    <script src="http://d3js.org/d3.v3.min.js"></script>
+    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>     <script src="http://d3js.org/topojson.v0.min.js"></script>
+    <script src="http://d3js.org/topojson.v0.min.js"></script>
+    <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.css" />
+    <script src="http://cdn.leafletjs.com/leaflet/v0.7.7/leaflet.js"></script>
+  </head>
+  <body>
+    <h1>D3.js</h1>
+    <script src="js/japan.js"></script>
+    <div id="map" style="height: 1000px; width:1000px;"></div>
+    <script>
+        var map = L.map('map').setView([16.0792705,108.2206174], 16);
+
+        mapLink = '<a href="http://openstreetmap.org">OpenStreetMap</a>';
+
+        L.tileLayer(
+            'http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; ' + mapLink + ' Contributors',
+            maxZoom: 18,
+          }).addTo(map);
+
+          function getRumClr(){
+              var clrArr = ['0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'];
+              var clr = '#';
+              for(i=0; i < 6; i++){
+                  clr = clr + clrArr[Math.floor( Math.random()*16)];
+              }
+              return clr;
+            }
+
+          d3.csv("../map/u_locations.csv", function(error,data){
+              //ユーザID(UID)をキーにネストする
+              var dataSet = d3.nest()
+                        .key(function (d) { return d.UID; })
+                        .entries(data);
+
+              var array = [];
+
+              var lArray = []; //leaflet用に変換した緯度経度の配列
+
+              d3.select("body")
+            	.append("svg")
+
+              for(var i=0; i<dataSet.length; i++){
+
+                for(var j=0; j<dataSet[i].values.length; j++){
+
+                	var latitude = dataSet[i].values[j].LAT;
+                	var longitude = dataSet[i].values[j].LON;
+
+                	if(latitude!=0||longitude!=0) //経度緯度のいずれかが0の場合は描画しない
+                	{
+                  	// var a = new L.LatLng(projection(latitude , longitude));
+                  	// array.push(a);
+                    lArray = new L.LatLng(dataSet[i].values[j].LON,dataSet[i].values[j].LAT);
+                    array.push(lArray);
+                }
+
+                }
+
+                console.log(array);
+                console.log(pointList);
+
+                // d3.select("svg")
+                //     .append("polyline")
+                //     .attr("points", array)
+                //     .attr("stroke", color[i] )
+                //     .attr("stroke-opacity", 1 )
+                //     .attr("fill", "none")
+                //     .attr("stroke-width", 1)
+
+                var firstpolyline = new L.Polyline(array, {
+                  color: 'red', //【WIP】ランダムにする
+                  weight: 10,
+                  opacity: 0.5,
+                  smoothFactor: 1
+                });
+
+                firstpolyline.addTo(map);
+
+                }
+
+          });
+
+
+    </script>
+  </body>
+</html>
